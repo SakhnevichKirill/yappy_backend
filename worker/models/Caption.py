@@ -90,3 +90,28 @@ class Caption():
             caption = self.video_captioning_model.get_caption(frame)
             results.append({'scene_start': start_time, 'caption': caption})
         return json.dumps(results, ensure_ascii=False)
+
+    def shot_transit_uniform(self, input_file):
+        cap = cv2.VideoCapture(input_file)
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        duration = round(cap.get(cv2.CAP_PROP_FRAME_COUNT) / fps)
+        time_intervals = duration / 12
+
+        results = []
+        timecode = 0.0
+
+        while timecode <= duration:
+            end_time = timecode + time_intervals
+            if end_time > duration:
+                end_time = duration
+
+            cap.set(cv2.CAP_PROP_POS_FRAMES, (timecode + (time_intervals / 2)) * fps)
+            ret, frame = cap.read()
+
+            if not ret:
+                break
+
+            caption = self.video_captioning_model.get_caption(frame)
+            results.append({'scene_start': timecode, 'caption': caption})
+            timecode += time_intervals
+        return json.dumps(results, ensure_ascii=False)

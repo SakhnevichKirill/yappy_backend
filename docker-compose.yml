@@ -19,55 +19,66 @@ services:
     #       - ./local-data/s3/data:/usr/src/app/localData
     #       - ./local-data/s3/metadata:/usr/src/app/localMetadata
 
-    typesense:
-        image: typesense/typesense:26.0
-        restart: on-failure
-        ports:
-            - "8108:8108"
-        volumes:
-            - ./typesense-data:/data
-        command: '--data-dir /data --api-key=xyz --enable-cors'
+    # typesense:
+    #     image: typesense/typesense:26.0
+    #     restart: on-failure
+    #     ports:
+    #         - "8108:8108"
+    #     volumes:
+    #         - ./typesense-data:/data
+    #     command: '--data-dir /data --api-key=xyz --enable-cors'
 
-    api:
-        build:
-            dockerfile: Dockerfiles/DockerfileApi
-        # restart: unless-stopped
-        ports:
-            - "9080:9080"
-        environment:
-            PORT: 9080
-        depends_on:
-            typesense:
-                condition: service_started
-            redis:
-                condition: service_healthy
-        command: gunicorn --conf api/gunicorn_conf.py -b 0.0.0.0:9080 -k uvicorn.workers.UvicornWorker api.main:app
+    # api:
+    #     build:
+    #         dockerfile: Dockerfiles/DockerfileApi
+    #     # restart: unless-stopped
+    #     ports:
+    #         - "9080:9080"
+    #     environment:
+    #         PORT: 9080
+    #     depends_on:
+    #         typesense:
+    #             condition: service_started
+    #         redis:
+    #             condition: service_healthy
+    #     command: gunicorn --conf api/gunicorn_conf.py -b 0.0.0.0:9080 -k uvicorn.workers.UvicornWorker api.main:app
 
-    worker:
+    # worker:
+    #     build:
+    #         context: .
+    #         dockerfile: Dockerfiles/DockerfileWorker
+    #     # restart: unless-stopped
+    #     runtime: nvidia
+    #     command: arq worker.config.WorkerSettings.WorkerSettings
+    #     environment:
+    #         - NVIDIA_VISIBLE_DEVICES=all
+    #     depends_on:
+    #         redis:
+    #             condition: service_healthy
+
+    video_captioning:
         build:
             context: .
-            dockerfile: Dockerfiles/DockerfileWorker
+            dockerfile: Dockerfiles/DockerfileWorkerEndpoint
         # restart: unless-stopped
         runtime: nvidia
         command: arq worker.config.WorkerSettings.WorkerSettings
         environment:
             - NVIDIA_VISIBLE_DEVICES=all
-        depends_on:
-            redis:
-                condition: service_healthy
-
-    redis:
-        image: redis
-        restart: always
-        volumes:
-            - ./redis/data:/data
-            - ./redis/redis.conf:/redis/redis.conf
-        expose:
-            - "6379"
-        healthcheck:
-            test: [ "CMD", "redis-cli", "ping" ]
-            interval: 10s
-            timeout: 3s
-            retries: 5
-            start_period: 1s
-        command: redis-server /redis/redis.conf
+        ports:
+            - "8080:8080"
+    # redis:
+    #     image: redis
+    #     restart: always
+    #     volumes:
+    #         - ./redis/data:/data
+    #         - ./redis/redis.conf:/redis/redis.conf
+    #     expose:
+    #         - "6379"
+    #     healthcheck:
+    #         test: [ "CMD", "redis-cli", "ping" ]
+    #         interval: 10s
+    #         timeout: 3s
+    #         retries: 5
+    #         start_period: 1s
+    #     command: redis-server /redis/redis.conf
