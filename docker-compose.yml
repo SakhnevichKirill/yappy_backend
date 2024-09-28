@@ -23,9 +23,9 @@ services:
         image: typesense/typesense:26.0
         restart: on-failure
         ports:
-        - "8108:8108"
+            - "8108:8108"
         volumes:
-        - ./typesense-data:/data
+            - ./typesense-data:/data
         command: '--data-dir /data --api-key=xyz --enable-cors'
 
     api:
@@ -48,7 +48,10 @@ services:
             context: .
             dockerfile: Dockerfiles/DockerfileWorker
         # restart: unless-stopped
+        runtime: nvidia
         command: arq worker.config.WorkerSettings.WorkerSettings
+        environment:
+            - NVIDIA_VISIBLE_DEVICES=all
         depends_on:
             redis:
                 condition: service_healthy

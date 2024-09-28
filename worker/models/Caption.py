@@ -1,10 +1,6 @@
 import cv2
 import numpy as np
-import os
-import easyocr
 import json
-from textdistance import levenshtein
-from ultralytics import YOLO
 from moviepy.editor import *
 import numpy as np
 import torch
@@ -48,9 +44,6 @@ class VideoCaptioningModel:
 class Caption():
     def __init__(self):
         self.video_captioning_model = VideoCaptioningModel()
-        self.reader = easyocr.Reader(['en', 'ru'])
-        self.yolo = YOLO("yolov8l.pt")
-        self.yolo_names = self.yolo.names
     
     def calculate_histogram(self, frame):
         # Convert frame to HSV color space
